@@ -101,7 +101,6 @@ func runServer(ctx context.Context, opts *options.Options) error {
 
 type Server struct {
 	secureServing   *apiserver.SecureServingInfo
-	insecureServing *apiserver.DeprecatedInsecureServingInfo
 
 	informerFactory kubeinformers.SharedInformerFactory
 
@@ -123,12 +122,6 @@ func (s *Server) Start(ctx context.Context) error {
 	// Serve the metrics.
 	mux.Handle("/metrics",
 		compbasemetrics.HandlerFor(s.metricsRegistry, compbasemetrics.HandlerOpts{ErrorHandling: compbasemetrics.ContinueOnError}))
-
-	if s.insecureServing != nil {
-		if err := s.insecureServing.Serve(mux, 0, ctx.Done()); err != nil {
-			return fmt.Errorf("failed to start insecure server: %w", err)
-		}
-	}
 
 	var shutdownCh <-chan struct{}
 	var listenerStoppedCh <-chan struct{}
@@ -228,7 +221,6 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 // Config holds the loaded options.Options used to set up the webhook server.
 type Config struct {
 	SecureServing     *apiserver.SecureServingInfo
-	InsecureServing   *apiserver.DeprecatedInsecureServingInfo
 	KubeConfig        *restclient.Config
 	PodSecurityConfig *admissionapi.PodSecurityConfiguration
 }
@@ -241,7 +233,6 @@ func LoadConfig(opts *options.Options) (*Config, error) {
 
 	var c Config
 	opts.SecureServing.ApplyTo(&c.SecureServing)
-	opts.InsecureServing.ApplyTo(&c.InsecureServing)
 
 	// Load Kube Client
 	kubeConfig, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
@@ -265,10 +256,9 @@ func LoadConfig(opts *options.Options) (*Config, error) {
 func Setup(c *Config) (*Server, error) {
 	s := &Server{
 		secureServing:   c.SecureServing,
-		insecureServing: c.InsecureServing,
 	}
 
-	if s.secureServing == nil && s.insecureServing == nil {
+	if s.secureServing == nil {
 		return nil, errors.New("no serving info configured")
 	}
 

@@ -34,8 +34,6 @@ type Config struct {
 	// LoopbackClientConfig is a config for a privileged loopback connection
 	LoopbackClientConfig *restclient.Config
 
-	// TODO: remove deprecated insecure serving
-	InsecureServing *apiserver.DeprecatedInsecureServingInfo
 	Authentication  apiserver.AuthenticationInfo
 	Authorization   apiserver.AuthorizationInfo
 

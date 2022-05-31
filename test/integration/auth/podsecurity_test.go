@@ -156,10 +156,6 @@ func startPodSecurityWebhook(t *testing.T, testServer *kubeapiservertesting.Test
 	if err != nil {
 		return "", err
 	}
-	insecureListener, err := net.Listen("tcp", "127.0.0.1:")
-	if err != nil {
-		return "", err
-	}
 	cert, err := dynamiccertificates.NewStaticCertKeyContent("localhost", utiltest.LocalhostCert, utiltest.LocalhostKey)
 	if err != nil {
 		return "", err
@@ -173,9 +169,6 @@ func startPodSecurityWebhook(t *testing.T, testServer *kubeapiservertesting.Test
 		SecureServing: &apiserver.SecureServingInfo{
 			Listener: secureListener,
 			Cert:     cert,
-		},
-		InsecureServing: &apiserver.DeprecatedInsecureServingInfo{
-			Listener: insecureListener,
 		},
 		KubeConfig:        testServer.ClientConfig,
 		PodSecurityConfig: defaultConfig,
@@ -195,7 +188,7 @@ func startPodSecurityWebhook(t *testing.T, testServer *kubeapiservertesting.Test
 	t.Logf("Waiting for webhook server /readyz to be ok...")
 	readyz := (&url.URL{
 		Scheme: "http",
-		Host:   c.InsecureServing.Listener.Addr().String(),
+		Host:   c.SecureServing.Listener.Addr().String(),
 		Path:   "/readyz",
 	}).String()
 	if err := wait.PollImmediate(100*time.Millisecond, wait.ForeverTestTimeout, func() (bool, error) {

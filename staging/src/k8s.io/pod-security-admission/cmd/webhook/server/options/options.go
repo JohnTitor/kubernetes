@@ -41,7 +41,6 @@ type Options struct {
 	ClientQPSBurst int
 
 	SecureServing   apiserveroptions.SecureServingOptions
-	InsecureServing apiserveroptions.DeprecatedInsecureServingOptions
 }
 
 func NewOptions() *Options {
@@ -49,12 +48,10 @@ func NewOptions() *Options {
 	secureServing.ServerCert.PairName = "webhook"
 	o := &Options{
 		SecureServing:   *secureServing,
-		InsecureServing: apiserveroptions.DeprecatedInsecureServingOptions{},
 		ClientQPSLimit:  DefaultClientQPSLimit,
 		ClientQPSBurst:  DefaultClientQPSBurst,
 	}
 	o.SecureServing.BindPort = DefaultPort
-	o.InsecureServing.BindPort = DefaultInsecurePort
 	return o
 }
 
@@ -65,7 +62,6 @@ func (o *Options) AddFlags(fs *pflag.FlagSet) {
 	fs.IntVar(&o.ClientQPSBurst, "client-qps-burst", o.ClientQPSBurst, "Client QPS burst limit for throttling requests to the API server.")
 
 	o.SecureServing.AddFlags(fs)
-	o.InsecureServing.AddFlags(fs)
 }
 
 // Validate validates all the required options.
@@ -73,7 +69,6 @@ func (o *Options) Validate() []error {
 	var errs []error
 
 	errs = append(errs, o.SecureServing.Validate()...)
-	errs = append(errs, o.InsecureServing.Validate()...)
 
 	return errs
 }
